@@ -2,9 +2,9 @@ Project CMS
 
 College Management System (CMS), a project which aims to develop a tool or software to facilitate a colloge/school or any other similar institute in managing its records, activities and other workflows/services. This system is supposed to be used by both, students, employees and admin at their respective levels. Further details about the software is as follow:
 
-Platform: for Windows (primarily), cross-platform is more than welcome
-Development Language(s): Python/TkInter (Graphical User Interface), MongoDB (Database)
-Development Model: Agile (Scrum framework)
+Platform: for Windows (primarily), cross-platform is more than welcome;  
+Development Language(s): Python/TkInter (Graphical User Interface), MongoDB (Database); 
+Development Model: Agile (Scrum framework);
 
 
 Guidelines and Conventions
