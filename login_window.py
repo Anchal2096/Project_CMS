@@ -1,28 +1,9 @@
 # This is the first window displayed, asking for login credentials
 from tkinter import *
 from tkinter import ttk
+import smtplib                      # for sending mail
+from Database_Config import db      # for database connectivity
 import tkinter.messagebox as tm
-from pymongo import *
-from pymongo.errors import ConnectionFailure
-import smtplib  # for sending mail
-
-# Connection of database server is global so that every function can use it
-
-"""Getting connection to database server"""
-if_connected = MongoClient("localhost", 27017)
-
-"""If connected then proceed further otherwise 
-   connection failure is displayed in as a message 
-   (except will run) and program will exit with code 1"""
-try:
-    if_connected.admin.command("ismaster")
-except ConnectionFailure as e:
-    tm.showerror("DataBase Server not connected", e)
-    sys.exit(1)
-
-"""Getting a database handler (database object kind of thing)"""
-# you can change this database accordingly
-db = if_connected["University"]
 
 
 class LoginWindow(Frame):
@@ -48,7 +29,8 @@ class LoginWindow(Frame):
         # changed into self.variable for getting dept. value otherwise was a local variable in function
         self.variable = StringVar(master)
         # self.variable.set("DCS") irrelevant line
-        self.drop_down = ttk.OptionMenu(self, self.variable, 'DCS', 'DCS', 'DIT', 'DOH', "DOE").grid(row=2, columnspan=8)
+        self.drop_down = ttk.OptionMenu(self, self.variable, 'DCS', 'DCS', 'DIT', 'DOH', "DOE")
+        self.drop_down.grid(row=2, columnspan=8)
 
         self.checkbox = ttk.Checkbutton(self, text="Keep Me Logged In.")
         self.checkbox.grid(columnspan=2)
@@ -70,7 +52,7 @@ class LoginWindow(Frame):
         password = self.entry_password.get()
         department = self.variable.get()
 
-        """Verifying the username and password from the database"""
+        # Verifying the username and password from the database
         verify_uname_passwd = db.department_admins.find_one({"fullname": username,
                                                              "password": password,
                                                              "department": department})
@@ -105,8 +87,6 @@ class LoginWindow(Frame):
             tm.showerror("Error", "SMTP Server Error" + str(error))
         finally:
             smtp_obj.quit()
-
-        # print("An email must be sent to the admin") = Done
 
     @staticmethod
     def exit_app():
