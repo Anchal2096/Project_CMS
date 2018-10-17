@@ -1,13 +1,5 @@
 # Files and folders to be ignored
-*
-*.*
 .idea/
-venv/
-Rough.py
-
-
-# Files and folders NOT to be ignored
-!*.py
-!*.txt
-!README.md
-!.gitignore
+venv*/
+Rough*.py
+__pycache__/
