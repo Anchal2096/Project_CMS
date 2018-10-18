@@ -1,8 +1,10 @@
 import sys
+from server_list import *   # for address of sender of password recovery mails
 from PyQt5.QtWidgets import *
 from variables import color
 from Database_Config import mongo_connection
 from cryptography.fernet import Fernet  # for encryption and decryption
+import smtplib  # for password recovery e-mails
 
 
 # Main login window class
@@ -61,6 +63,8 @@ class LoginWindow(QWidget):
         self.button_login = QPushButton('Login')
         self.button_login.clicked.connect(self.admin_authentication)
         self.button_forgotPass = QPushButton('Forgot Password')
+        # when forgot password button is pressed then recover password will run
+        self.button_forgotPass.clicked.connect(self.recover_password)
 
         # toggling message/text (to be displayed as login status)
         self.login_message = QLabel()
@@ -210,6 +214,48 @@ class LoginWindow(QWidget):
                 text = 'Invalid User: Please check your credentials'
                 print(text)                         # displaying to console
                 self.display_message(False, text)   # displaying on window
+
+    # Function to get the Username and Password
+    def recover_password(self):
+        department = self.options_department.currentText()
+        department_index = self.options_department.currentIndex()
+
+        # if department is left blank
+        if department_index is 0:
+            text = "Error: Please select a department to recover password !!!"
+            print(text)
+            self.display_message(False, text)  # displaying on window
+
+        else:
+            # name of database which is to be used
+            database = "Institute"
+            db = mongo_connection[database]
+
+            # collection of that database which holds email-ID of departments
+            collection = 'Admin_Records'
+
+            # command below returns a cursor object hence to find values one must iterate over it
+            all_values = db[collection].find({"Department": department})
+            receiver, message = None, None
+
+            # so iterating over it to get the required values
+            for value in all_values:
+                receiver = value['Email']
+                magic_box = Fernet(value['Key'])
+                byte_decrypted_pass = magic_box.decrypt(value['Password'])
+                decrypted_pass = byte_decrypted_pass.decode()
+                message = "Your Username is " + str(value["Name"]) + "\nYour Password is " + str(decrypted_pass)
+
+            # Actual mailing logic
+            smtp_obj = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+            smtp_obj.login(sender, sender_passwd)  # sender and sender's password (defined in server_list.py)
+            try:
+                smtp_obj.sendmail(sender, receiver, message)
+                print('Account Recovery', 'An Email for your password recovery has been sent to your Email-Id.')
+            except smtplib.SMTPException as error:
+                print("Error", "SMTP Server Error" + str(error))
+            finally:
+                smtp_obj.quit()
 
 
 # main execution starts from here
