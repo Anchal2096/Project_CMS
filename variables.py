@@ -7,6 +7,10 @@ color = {
     'magenta': '#360539',
     'normalPink': '#880565',
     'lightPink': '#C809B5',
+    'lightRed': '#EB8D8D',
+    'crimson': '#690000',
+    'lightGreen': '#90C08D',
+    'normalGreen': '#008B00'
 }
 
 

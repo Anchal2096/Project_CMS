@@ -1,5 +1,6 @@
 import sys
 from PyQt5.QtWidgets import *
+from variables import color
 from Database_Config import mongo_connection
 from cryptography.fernet import Fernet  # for encryption and decryption
 
@@ -61,6 +62,10 @@ class LoginWindow(QWidget):
         self.button_login.clicked.connect(self.admin_authentication)
         self.button_forgotPass = QPushButton('Forgot Password')
 
+        # toggling message/text (to be displayed as login status)
+        self.login_message = QLabel()
+        self.login_message.setHidden(True)
+
         """
         The layout is of 6x4 row-column matrix, where the 1st row 
         would display message, 2nd row will have widgets for username.
@@ -93,29 +98,82 @@ class LoginWindow(QWidget):
         self.row5.addStretch()
         self.layout.addRow(self.row5)
 
+        # 6th row alignment containing login message
+        self.row6 = QHBoxLayout()
+        self.row6.addWidget(self.login_message)
+
         # vertical alignments of above widgets
         self.V_align = QVBoxLayout()
         self.V_align.addLayout(self.row1)
         self.V_align.addStretch(1)
         self.V_align.addLayout(self.layout)
-        self.V_align.addStretch(2)
+        self.V_align.addStretch(1)
+        self.V_align.addLayout(self.row6)
 
         self.setLayout(self.V_align)
 
+    # display login messages
+    def display_message(self, status, message):
+
+        # displaying the required message
+        if status:
+            self.login_message.setText("Login was successful. Proceeding...")
+
+            # setting style to the message area
+            style = "color: {text};" \
+                    "background-color: {bg};" \
+                    "border: 1px solid {b_color};" \
+                    "text-align: right;" \
+                    .format(text=color['normalGreen'],
+                            bg=color['lightGreen'],
+                            b_color=color['normalGreen'])
+
+            self.login_message.setStyleSheet(style)
+            self.login_message.setHidden(False)
+
+        else:
+            self.login_message.setText(message)
+
+            # setting style to the message area
+            style = "color: {text};" \
+                    "background-color: {bg};" \
+                    "border: 1px solid {b_color};" \
+                    "text-align: right;" \
+                    .format(text=color['crimson'],
+                            bg=color['lightRed'],
+                            b_color=color['crimson'])
+
+            self.login_message.setStyleSheet(style)
+            self.login_message.setHidden(False)
+
     # verifying administrator credentials from respective DB
     def admin_authentication(self):
-        admin_name = str(self.field_username.text())
+        admin_name = self.field_username.text()
+        password = self.field_password.text()
         department = self.options_department.currentText()
         index_department = self.options_department.currentIndex()
 
-        # checking if department is left un-selected
-        if self.field_username is None:
-            print("Please fill up your name")
-        elif self.field_password is None:
-            print("Please type your password")
+        # checking if fields are left blank or un-selected
+        if admin_name == '':
+            # in case of blank user/admin name
+            text = "Error: Please fill up your name"
+            print(text)
+            self.display_message(False, text)   # displaying on window
+
+        elif password == '':
+            # in case of blank password
+            text = "Error: Please your password"
+            print(text)
+            self.display_message(False, text)  # displaying on window
+
         elif index_department is 0:
-            print("Please select your department")
+            # in case of blank user/admin name
+            text = "Error: Please select a department"
+            print(text)
+            self.display_message(False, text)  # displaying on window
+
         else:
+            # processing given data
             database = 'Institute'      # name of the database
             db = mongo_connection[database]
 
@@ -135,13 +193,21 @@ class LoginWindow(QWidget):
 
                 # matching given password with DB password
                 if decrypted_pass == self.field_password.text():
-                    print("Login Successful")
-                    exit(0)                 # must be redirected to other window instead
+
+                    # creating desired message
+                    text = 'Login was successful. Proceeding...'
+                    print(text)                         # displaying to console
+                    self.display_message(True, text)    # displaying on window
+                    exit(0)                             # should redirected instead
                 else:
                     print("Wrong Password")
+                    self.display_message(False)
 
             else:
-                print("Invalid User")
+                # creating desired message
+                text = 'Invalid User: Please check your credentials'
+                print(text)                         # displaying to console
+                self.display_message(False, text)   # displaying on window
 
 
 # main execution starts from here
