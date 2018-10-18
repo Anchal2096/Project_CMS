@@ -2,7 +2,6 @@
 import sys
 from pymongo import *
 from server_list import *
-import tkinter.messagebox as tm
 from pymongo.errors import ConnectionFailure
 
 # Connection of database server is global so that every function can use it
@@ -17,5 +16,5 @@ mongo_connection = MongoClient(cloud_SVR['DEV'])
 try:
     mongo_connection.admin.command("ismaster")
 except ConnectionFailure:
-    tm.showerror("DataBase Server not connected", ConnectionFailure)
+    print("DataBase Server not connected", ConnectionFailure)
     sys.exit(1)
