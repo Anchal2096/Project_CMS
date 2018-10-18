@@ -200,8 +200,10 @@ class LoginWindow(QWidget):
                     self.display_message(True, text)    # displaying on window
                     exit(0)                             # should redirected instead
                 else:
-                    print("Wrong Password")
-                    self.display_message(False)
+                    # creating desired message
+                    text = 'Wrong Password: Please check the letters case'
+                    print(text)  # displaying to console
+                    self.display_message(False, text)  # displaying on window
 
             else:
                 # creating desired message
