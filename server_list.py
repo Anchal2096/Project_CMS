@@ -7,7 +7,7 @@ local_SVR = {
 
 # MongoDB Atlas cloud server
 cloud_SVR = {
-    'DEV': "mongodb+srv://Dev_Vrat:mongo_cloud_space_owner@projects-fwo0r.mongodb.net/test",
+    'DEV': "mongodb+srv://Dev_Vrat:mongo_cloud_space_owner@projects-fwo0r.mongodb.net/",
     'ABHISHEK': "mongodb://localhost:27017",
     'ANCHAL': "mongodb://localhost:27017"
 }
