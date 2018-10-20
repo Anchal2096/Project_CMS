@@ -1,10 +1,12 @@
 import sys
-from server_list import *   # for address of sender of password recovery mails
+from server_list import *               # for address of sender of password recovery mails
 from PyQt5.QtWidgets import *
 from variables import color
-from Database_Config import mongo_connection
+from Database_Config import check_connection
 from cryptography.fernet import Fernet  # for encryption and decryption
-import smtplib  # for password recovery e-mails
+import smtplib                          # for password recovery e-mails
+from pymongo.errors import ServerSelectionTimeoutError
+from pymongo.errors import CollectionInvalid
 
 
 # Main login window class
@@ -63,6 +65,7 @@ class LoginWindow(QWidget):
         self.button_login = QPushButton('Login')
         self.button_login.clicked.connect(self.admin_authentication)
         self.button_forgotPass = QPushButton('Forgot Password')
+
         # when forgot password button is pressed then recover password will run
         self.button_forgotPass.clicked.connect(self.recover_password)
 
@@ -166,7 +169,7 @@ class LoginWindow(QWidget):
 
         elif password == '':
             # in case of blank password
-            text = "Error: Please your password"
+            text = "Error: Please put up your password"
             print(text)
             self.display_message(False, text)  # displaying on window
 
@@ -178,15 +181,23 @@ class LoginWindow(QWidget):
 
         else:
             # processing given data
+
+            # connecting to servers
+            connect = check_connection()
             database = 'Institute'      # name of the database
-            db = mongo_connection[database]
+            db = connect[database]
 
             # name of the table/collection
             collection = 'Admin_Records'
 
             # fetching key and password from the database for authentication
-            results = db[collection].find_one({"Name": admin_name, "Department": department},
-                                              {"_id": 0, "Key": 1, "Password": 1})
+            try:
+                results = db[collection].find_one({"Name": admin_name, "Department": department},
+                                                  {"_id": 0, "Key": 1, "Password": 1})
+            except ServerSelectionTimeoutError:
+                text = "Could not connect. Server may be offline"
+                self.display_message(False, text)
+                return 0
 
             # in case the above query return something
             if results is not None:
@@ -202,7 +213,7 @@ class LoginWindow(QWidget):
                     text = 'Login was successful. Proceeding...'
                     print(text)                         # displaying to console
                     self.display_message(True, text)    # displaying on window
-                    exit(0)                             # should redirected instead
+                    return 0                           # should redirected instead
                 else:
                     # creating desired message
                     text = 'Wrong Password: Please check the letters case'
@@ -227,9 +238,10 @@ class LoginWindow(QWidget):
             self.display_message(False, text)  # displaying on window
 
         else:
-            # name of database which is to be used
-            database = "Institute"
-            db = mongo_connection[database]
+            # connecting to servers
+            connect = check_connection()
+            database = 'Institute'  # name of the database
+            db = connect[database]
 
             # collection of that database which holds email-ID of departments
             collection = 'Admin_Records'

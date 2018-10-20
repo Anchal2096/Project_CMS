@@ -1,8 +1,8 @@
-# This file contains information about different servers
+# ONLINE AND OFFLINE SERVER CONFIGURATIONS
 
 # local machine server
 local_SVR = {
-    'name': "mongodb://localhost:27017"
+    'PC': "mongodb://localhost:27017"
 }
 
 # MongoDB Atlas cloud server
@@ -10,18 +10,17 @@ cloud_SVR = {
     'DEV': "mongodb+srv://Dev_Vrat:mongo_cloud_space_owner@projects-fwo0r.mongodb.net/",
     'ABHISHEK': "mongodb://localhost:27017",
     'ANCHAL': "mongodb://localhost:27017",
-    'USER' : "mongodb://localhost:27017"
+    'USER': "mongodb://localhost:27017"
 }
 
-# password recovery sender's details
-# try with your own email id and your password
+
+# MAIL SERVER CONFIGURATIONS
 """
-Currently working with only gmail.
-Hopefully we'll be adding other servers too....
-And don't forget to replace this starred password with your own.
+At the time of development, this was tested using G-mail only
+The sender's email could be changed accordingly as per 
 """
 sender = "atrivedi397@gmail.com"
-sender_passwd = "*********"
+sender_passwd = "<PASSWORD>"
 
 """
 general command to connect from the cloud server
