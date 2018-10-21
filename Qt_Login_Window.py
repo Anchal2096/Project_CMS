@@ -6,7 +6,6 @@ from Database_Config import check_connection
 from cryptography.fernet import Fernet  # for encryption and decryption
 import smtplib                          # for password recovery e-mails
 from pymongo.errors import ServerSelectionTimeoutError
-from pymongo.errors import CollectionInvalid
 
 
 # Main login window class
@@ -228,14 +227,15 @@ class LoginWindow(QWidget):
 
     # Function to get the Username and Password
     def recover_password(self):
+        admin_name = self.field_username.text()
         department = self.options_department.currentText()
         department_index = self.options_department.currentIndex()
 
-        # if department is left blank
-        if department_index is 0:
-            text = "Error: Please select a department to recover password !!!"
+        # if user name and department is left blank
+        if admin_name == '' or department_index is 0:
+            text = "Error: Name and Department are needed"
             print(text)
-            self.display_message(False, text)  # displaying on window
+            self.display_message(False, text)       # displaying on window
 
         else:
             # connecting to servers
@@ -247,7 +247,7 @@ class LoginWindow(QWidget):
             collection = 'Admin_Records'
 
             # command below returns a cursor object hence to find values one must iterate over it
-            all_values = db[collection].find({"Department": department})
+            all_values = db[collection].find({"Name": admin_name, "Department": department})
             receiver, message = None, None
 
             # so iterating over it to get the required values
@@ -263,7 +263,7 @@ class LoginWindow(QWidget):
             smtp_obj.login(sender, sender_passwd)  # sender and sender's password (defined in server_list.py)
             try:
                 smtp_obj.sendmail(sender, receiver, message)
-                print('Account Recovery', 'An Email for your password recovery has been sent to your Email-Id.')
+                print('[Password Recovery] A password recovery mail has been sent to your registered Email-Id.')
             except smtplib.SMTPException as error:
                 print("Error", "SMTP Server Error" + str(error))
             finally:
