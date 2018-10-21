@@ -3,7 +3,7 @@ from server_list import *               # for address of sender of password reco
 from PyQt5.QtWidgets import *
 from variables import color
 from Database_Config import check_connection
-from cryptography.fernet import Fernet  # for encryption and decryption
+from global_functions import *
 import smtplib                          # for password recovery e-mails
 from pymongo.errors import ServerSelectionTimeoutError
 
@@ -200,13 +200,8 @@ class LoginWindow(QWidget):
 
             # in case the above query return something
             if results is not None:
-                # decrypting password so it can be matched
-                magic_box = Fernet(results['Key'])
-                byte_decrypted_pass = magic_box.decrypt(results['Password'])
-                decrypted_pass = byte_decrypted_pass.decode()
-
-                # matching given password with DB password
-                if decrypted_pass == self.field_password.text():
+                # decrypting password so it can be matched with DB password
+                if decrypt(results['Password'], results['Key']) == self.field_password.text():
 
                     # creating desired message
                     text = 'Login was successful. Proceeding...'
@@ -253,9 +248,7 @@ class LoginWindow(QWidget):
             # so iterating over it to get the required values
             for value in all_values:
                 receiver = value['Email']
-                magic_box = Fernet(value['Key'])
-                byte_decrypted_pass = magic_box.decrypt(value['Password'])
-                decrypted_pass = byte_decrypted_pass.decode()
+                decrypted_pass = decrypt(value['Password'], value['Key'])
                 message = "Your Username is " + str(value["Name"]) + "\nYour Password is " + str(decrypted_pass)
 
             # Actual mailing logic

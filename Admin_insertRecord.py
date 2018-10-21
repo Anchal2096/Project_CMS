@@ -1,5 +1,5 @@
 from Database_Config import check_connection
-from cryptography.fernet import Fernet
+from global_functions import *
 from pymongo.errors import ServerSelectionTimeoutError
 
 
@@ -45,19 +45,16 @@ def insert_random_valid_record():
     level = 1
     contact = int(input("Enter the contact number\n"))
 
-    # generating a key
-    pass_key = Fernet.generate_key()
-    magic_box = Fernet(pass_key)
-    encrypted_pass = magic_box.encrypt(str.encode(password))
+    string = encrypt(password)
 
     # creating a record (which will be inserted into DB)
     record = {'Name': name,
-              'Password': encrypted_pass,
+              'Password': string['cipher_text'],
               'Department': dept,
               'Email': email,
               'Contact': contact,
               'Clearance_Level': level,
-              'Key': pass_key
+              'Key': string['key']
               }
 
     # inserting data into DB
