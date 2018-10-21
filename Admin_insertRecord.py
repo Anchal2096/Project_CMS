@@ -1,13 +1,16 @@
-from Database_Config import mongo_connection
+from Database_Config import check_connection
 from cryptography.fernet import Fernet
+from pymongo.errors import ServerSelectionTimeoutError
 
 
 def insert_random_valid_record():
     # name of the database that is to be used
-    database = 'Institute'
-    db = mongo_connection[database]
+    # connecting to servers
+    connect = check_connection()
+    database = 'Institute'  # name of the database
+    db = connect[database]
 
-    # name of the collection to which data is inserted
+    # name of the table/collection
     collection = 'Admin_Records'
 
     # taking name of the user
@@ -58,7 +61,12 @@ def insert_random_valid_record():
               }
 
     # inserting data into DB
-    db[collection].insert(record)
+    try:
+        db[collection].insert(record)
+    except ServerSelectionTimeoutError:
+        text = "Could not connect. Server may be offline"
+        print(text)
+        return 0
     print("Your data has been successfully inserted.")
 
 
