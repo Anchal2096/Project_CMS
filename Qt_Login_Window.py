@@ -195,6 +195,7 @@ class LoginWindow(QWidget):
                                                   {"_id": 0, "Key": 1, "Password": 1})
             except ServerSelectionTimeoutError:
                 text = "Could not connect. Server may be offline"
+                print(text)
                 self.display_message(False, text)
                 return 0
 
@@ -240,27 +241,29 @@ class LoginWindow(QWidget):
 
             # collection of that database which holds email-ID of departments
             collection = 'Admin_Records'
-
-            # command below returns a cursor object hence to find values one must iterate over it
-            all_values = db[collection].find({"Name": admin_name, "Department": department})
-            receiver, message = None, None
-
-            # so iterating over it to get the required values
-            for value in all_values:
-                receiver = value['Email']
-                decrypted_pass = decrypt(value['Password'], value['Key'])
-                message = "Your Username is " + str(value["Name"]) + "\nYour Password is " + str(decrypted_pass)
-
-            # Actual mailing logic
-            smtp_obj = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-            smtp_obj.login(sender, sender_passwd)  # sender and sender's password (defined in server_list.py)
             try:
+                # command below returns a cursor object hence to find values one must iterate over it
+                all_values = db[collection].find({"Name": admin_name, "Department": department})
+                receiver, message = None, None
+
+                # so iterating over it to get the required values
+                for value in all_values:
+                    receiver = value['Email']
+                    decrypted_pass = decrypt(value['Password'], value['Key'])
+                    message = "Your Username is " + str(value["Name"]) + "\nYour Password is " + str(decrypted_pass)
+
+                # Actual mailing logic
+                smtp_obj = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+                smtp_obj.login(sender, sender_passwd)  # sender and sender's password (defined in server_list.py)
                 smtp_obj.sendmail(sender, receiver, message)
                 print('[Password Recovery] A password recovery mail has been sent to your registered Email-Id.')
+                smtp_obj.quit()
             except smtplib.SMTPException as error:
                 print("Error", "SMTP Server Error" + str(error))
+            except ServerSelectionTimeoutError:
+                print("Query has failed")
             finally:
-                smtp_obj.quit()
+                pass
 
 
 # main execution starts from here
