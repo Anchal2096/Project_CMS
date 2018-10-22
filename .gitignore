@@ -1,0 +1,5 @@
+# Files and folders to be ignored
+.idea/
+venv*/
+Rough*.py
+__pycache__/
