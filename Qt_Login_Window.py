@@ -3,7 +3,7 @@ from server_list import *               # for address of sender of password reco
 from PyQt5.QtWidgets import *
 from variables import color
 from Database_Config import check_connection
-from cryptography.fernet import Fernet  # for encryption and decryption
+from global_functions import *
 import smtplib                          # for password recovery e-mails
 from pymongo.errors import ServerSelectionTimeoutError
 
@@ -195,18 +195,14 @@ class LoginWindow(QWidget):
                                                   {"_id": 0, "Key": 1, "Password": 1})
             except ServerSelectionTimeoutError:
                 text = "Could not connect. Server may be offline"
+                print(text)
                 self.display_message(False, text)
                 return 0
 
             # in case the above query return something
             if results is not None:
-                # decrypting password so it can be matched
-                magic_box = Fernet(results['Key'])
-                byte_decrypted_pass = magic_box.decrypt(results['Password'])
-                decrypted_pass = byte_decrypted_pass.decode()
-
-                # matching given password with DB password
-                if decrypted_pass == self.field_password.text():
+                # decrypting password so it can be matched with DB password
+                if decrypt(results['Password'], results['Key']) == self.field_password.text():
 
                     # creating desired message
                     text = 'Login was successful. Proceeding...'
@@ -245,29 +241,29 @@ class LoginWindow(QWidget):
 
             # collection of that database which holds email-ID of departments
             collection = 'Admin_Records'
-
-            # command below returns a cursor object hence to find values one must iterate over it
-            all_values = db[collection].find({"Name": admin_name, "Department": department})
-            receiver, message = None, None
-
-            # so iterating over it to get the required values
-            for value in all_values:
-                receiver = value['Email']
-                magic_box = Fernet(value['Key'])
-                byte_decrypted_pass = magic_box.decrypt(value['Password'])
-                decrypted_pass = byte_decrypted_pass.decode()
-                message = "Your Username is " + str(value["Name"]) + "\nYour Password is " + str(decrypted_pass)
-
-            # Actual mailing logic
-            smtp_obj = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-            smtp_obj.login(sender, sender_passwd)  # sender and sender's password (defined in server_list.py)
             try:
+                # command below returns a cursor object hence to find values one must iterate over it
+                all_values = db[collection].find({"Name": admin_name, "Department": department})
+                receiver, message = None, None
+
+                # so iterating over it to get the required values
+                for value in all_values:
+                    receiver = value['Email']
+                    decrypted_pass = decrypt(value['Password'], value['Key'])
+                    message = "Your Username is " + str(value["Name"]) + "\nYour Password is " + str(decrypted_pass)
+
+                # Actual mailing logic
+                smtp_obj = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+                smtp_obj.login(sender, sender_passwd)  # sender and sender's password (defined in server_list.py)
                 smtp_obj.sendmail(sender, receiver, message)
                 print('[Password Recovery] A password recovery mail has been sent to your registered Email-Id.')
+                smtp_obj.quit()
             except smtplib.SMTPException as error:
                 print("Error", "SMTP Server Error" + str(error))
+            except ServerSelectionTimeoutError:
+                print("Query has failed")
             finally:
-                smtp_obj.quit()
+                pass
 
 
 # main execution starts from here

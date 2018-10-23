@@ -12,28 +12,30 @@ from pymongo.errors import *
 
 def check_connection():
     # no of seconds for timeout
-    max_timeout = 300
+    max_timeout = 1500
     try:
-        print("Connecting to cloud server(s)...")
+        print("Looking for cloud server(s)...")
         # trying to establish connection to 'DEV' cloud server
         # all server configuration mentioned in server_list.py
         mongo_connection = \
             MongoClient(host=cloud_SVR['DEV'],
                         port=27017, connectTimeoutMS=max_timeout,
                         serverSelectionTimeoutMS=max_timeout)
+        print("Valid cloud server url detected.")
         return mongo_connection
 
     # when connection (to cloud server) has been refused or failed
     except ConfigurationError:
-        print("Connection failed.")
+        print("Could not connect.")
         print("Redirecting to local servers...")
+
         try:
             # redirect to the local servers
             mongo_connection = \
                 MongoClient(host=local_SVR['PC'],
                             port=27017, connectTimeoutMS=max_timeout,
                             serverSelectionTimeoutMS=max_timeout)
-            print("Connection established")
+            print("Valid local server url detected")
             return mongo_connection
 
         # when connection (to local server) has been refused or failed
